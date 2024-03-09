@@ -20,6 +20,7 @@ async fn main() {
                 ),
         )
         .subcommand(Command::new("push").about("Pushes the current folder's code to the server"))
+        .subcommand(Command::new("login").about("Log in to your ploton account"))
         .get_matches();
 
     match matches.subcommand() {
@@ -29,6 +30,9 @@ async fn main() {
         }
         Some(("push", _)) => {
             commands::push::execute().await;
+        }
+        Some(("login", _)) => {
+            commands::login::execute().await;
         }
         _ => unreachable!("The CLI parser guards against this"),
     }
