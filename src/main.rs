@@ -1,6 +1,8 @@
 use clap::{Arg, Command};
 use tokio;
 
+mod commands;
+
 #[tokio::main]
 async fn main() {
     let matches = Command::new("ploton")
@@ -23,19 +25,11 @@ async fn main() {
     match matches.subcommand() {
         Some(("link", sub_m)) => {
             let app_id = sub_m.get_one::<String>("APP_ID").unwrap();
-            link_app(app_id).await;
+            commands::link::execute(app_id).await;
         }
         Some(("push", _)) => {
-            push_code().await;
+            commands::push::execute().await;
         }
         _ => unreachable!("The CLI parser guards against this"),
     }
-}
-
-async fn link_app(app_id: &str) {
-    println!("Linking app ID: {}", app_id);
-}
-
-async fn push_code() {
-    println!("Pushing code...");
 }
