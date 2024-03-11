@@ -29,7 +29,10 @@ async fn main() {
             commands::link::execute(app_id).await;
         }
         Some(("push", _)) => {
-            commands::push::execute().await;
+            match commands::push::execute().await {
+                Ok(_) => print!("Ok"),
+                Err(_) => print!("err"),
+            };
         }
         Some(("login", _)) => {
             commands::login::execute().await;

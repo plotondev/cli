@@ -1,27 +1,51 @@
-use keyring::{Entry, Error};
+use anyhow::{Context, Result};
+use keyring::Entry;
+use reqwest;
+use serde::Serialize;
 use std::io;
 
-pub async fn execute() -> Result<(), Error> {
+#[derive(Serialize)]
+struct ApiKeyPayload {
+    api_key: String,
+}
+
+pub async fn execute() -> Result<()> {
     println!("Please visit the following URL to obtain your API key:");
-    println!("https://auth.ploton.dev/org/api_keys/");
+    println!("https://714844344.propelauthtest.com/org/api_keys/");
     println!("Enter your API key:");
 
     let mut api_key = String::new();
     io::stdin()
         .read_line(&mut api_key)
-        .expect("Failed to read line");
+        .context("Failed to read line")?;
     let api_key = api_key.trim(); // Trim newline and whitespaces
 
-    // Using 'ploton' as the service identifier and 'api_key' as the account name.
-    let keyring = Entry::new("ploton", "api_key")?;
-    match keyring.set_password(api_key) {
-        Ok(_) => {
-            println!("API key stored successfully.");
-            Ok(()) // Explicitly return Ok(())
-        }
-        Err(e) => {
-            println!("Failed to store API key: {}", e);
-            Err(e) // Propagate the error
-        }
+    // Perform API key validation
+    let client = reqwest::Client::new();
+
+    let payload = ApiKeyPayload {
+        api_key: api_key.to_string(),
+    };
+
+    let response = client
+        .post("http://localhost:9090/cli")
+        .json(&payload)
+        .send()
+        .await
+        .context("Failed to send validation request")?;
+
+    if response.status().is_success() {
+        let keyring = Entry::new("ploton", "api_key")?;
+        keyring
+            .set_password(api_key)
+            .context("Failed to store API key in keyring")?;
+
+        println!("Ploton auth success.");
+        Ok(())
+    } else {
+        anyhow::bail!(
+            "Failed to validate API key. HTTP Error: {}",
+            response.status()
+        );
     }
 }
