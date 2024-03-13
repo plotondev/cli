@@ -1,12 +1,39 @@
 use anyhow::{Context, Result};
+use dirs;
 use keyring::Entry;
 use reqwest;
-use serde::Serialize;
-use std::io;
+use serde::{Deserialize, Serialize};
+use serde_json;
+use std::{fs, io};
 
 #[derive(Serialize)]
 struct ApiKeyPayload {
     api_key: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Config {
+    org_id: String,
+    org_name: String,
+    user_email: String,
+}
+
+fn save_config(config: &Config) -> Result<(), io::Error> {
+    // Use `dirs` crate to find the home directory
+    let home_dir = dirs::home_dir().ok_or(io::Error::new(
+        io::ErrorKind::NotFound,
+        "Home directory not found",
+    ))?;
+    let ploton_dir = home_dir.join(".ploton");
+
+    // Create `.ploton` directory if it doesn't exist
+    fs::create_dir_all(&ploton_dir)?;
+
+    let config_path = ploton_dir.join("config.json");
+    let config_data = serde_json::to_string_pretty(&config)?;
+
+    fs::write(config_path, config_data)?;
+    Ok(())
 }
 
 pub async fn execute() -> Result<()> {
@@ -35,12 +62,23 @@ pub async fn execute() -> Result<()> {
         .context("Failed to send validation request")?;
 
     if response.status().is_success() {
-        let keyring = Entry::new("ploton", "api_key")?;
+        let config: Config = response
+            .json()
+            .await
+            .context("Failed to send validation request")?;
+
+        save_config(&config)?;
+
+        let keyring = Entry::new("ploton", &config.org_id)?;
         keyring
             .set_password(api_key)
             .context("Failed to store API key in keyring")?;
 
-        println!("Ploton auth success.");
+        print!(
+            "Authentication as user: {} for organization: {}\n",
+            config.user_email, config.org_name
+        );
+
         Ok(())
     } else {
         anyhow::bail!(

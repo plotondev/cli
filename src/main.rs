@@ -35,7 +35,10 @@ async fn main() {
             };
         }
         Some(("login", _)) => {
-            commands::login::execute().await;
+            match commands::login::execute().await {
+                Ok(_) => print!("Ploton auth success."),
+                Err(e) => print!("Error : {}", e),
+            };
         }
         _ => unreachable!("The CLI parser guards against this"),
     }
