@@ -2,13 +2,17 @@ use clap::{Arg, Command};
 use tokio;
 
 mod commands;
+mod util;
+
+static LOGIN_URL: &str = env!("LOGIN_URL");
+static SERVER_URL: &str = env!("SERVER_URL");
 
 #[tokio::main]
 async fn main() {
     let matches = Command::new("ploton")
         .version("1.0")
-        .author("Your Name")
-        .about("Pushes code to a server, excluding unwanted files")
+        .author("Hitesh Joshi")
+        .about("Ploton cli to help you manage your integration apps.")
         .subcommand(
             Command::new("link")
                 .about("Links an app to the current folder")
