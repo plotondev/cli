@@ -9,7 +9,13 @@ use crate::{
 use anyhow::{Context, Result};
 use std::io;
 
-pub async fn execute() -> Result<()> {
+use clap::Parser;
+
+/// Ploton authentication command
+#[derive(Parser)]
+pub struct Args {}
+
+pub async fn command(_args: Args, json: bool) -> Result<()> {
     println!("Please visit the following URL to obtain your API key:");
     println!("{}/org/api_keys/", LOGIN_URL);
     println!("Paste your API key below:");
