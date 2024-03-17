@@ -1,14 +1,16 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
+use commands::*;
 use tokio;
 
 mod commands;
-use commands::*;
+mod macros;
 mod util;
 
 static LOGIN_URL: &str = env!("LOGIN_URL");
 static SERVER_URL: &str = env!("SERVER_URL");
 
+/// Interact with Ploton via CLI
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 #[clap(propagate_version = true)]
@@ -21,30 +23,6 @@ pub struct Args {
     json: bool,
 }
 
-#[macro_export]
-macro_rules! commands_enum {
-    ($($module:ident),*) => (
-      paste::paste! {
-        #[derive(Subcommand)]
-        enum Commands {
-            $(
-              [<$module:camel>]($module::Args),
-            )*
-        }
-
-        impl Commands {
-            async fn exec(cli: Args) -> Result<()> {
-              match cli.command {
-                $(
-                  Commands::[<$module:camel>](args) => $module::command(args, cli.json).await?,
-                )*
-              }
-              Ok(())
-            }
-        }
-      }
-    );
-}
 commands_enum!(link, login, push);
 
 #[tokio::main]
