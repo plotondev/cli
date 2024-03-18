@@ -1,12 +1,13 @@
 use crate::{
     util::{
         api_key::set_key,
-        config_file::{save_config, Config},
+        config_file::{save_config, Config, PlotonConfig},
         http::HttpClient,
     },
     LOGIN_URL,
 };
 use anyhow::{Context, Result};
+use serde::{Deserialize, Serialize};
 use std::io;
 
 use clap::Parser;
@@ -15,6 +16,12 @@ use clap::Parser;
 #[derive(Parser)]
 pub struct Args {}
 
+#[derive(Deserialize)]
+struct LoginResp {
+    org_id: String,
+    org_name: String,
+    user_email: String,
+}
 pub async fn command(_args: Args, json: bool) -> Result<()> {
     println!("Please visit the following URL to obtain your API key:");
     println!("{}/org/api_keys/", LOGIN_URL);
@@ -29,17 +36,19 @@ pub async fn command(_args: Args, json: bool) -> Result<()> {
     let response = HttpClient::new().post("/cli", api_key).await?;
 
     if response.status().is_success() {
-        let config: Config = response
+        let resp: LoginResp = response
             .json()
             .await
             .context("Failed to send validation request")?;
 
-        save_config(&config)?;
-        set_key(config.org_id, api_key.to_string()).await?;
+        let mut config = Config::new()?;
+        config.set_org_id(resp.org_id.clone());
+        config.write()?;
+        set_key(resp.org_id, api_key.to_string()).await?;
 
         print!(
             "Authenticated as {} for organization: {}\n\n {} set to default organization.\n\n",
-            config.user_email, config.org_name, config.org_name
+            resp.user_email, resp.org_name, resp.org_name
         );
 
         Ok(())
