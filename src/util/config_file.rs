@@ -15,10 +15,14 @@ pub struct LinkedProject {
     pub name: Option<String>,
     pub project: String,
 }
-
+#[derive(Serialize, Deserialize, Clone)]
+pub struct PlotonUser {
+    pub token: String,
+}
 #[derive(Serialize, Deserialize)]
 pub struct PlotonConfig {
-    pub org_id: Option<String>,
+    pub user: HashMap<String, PlotonUser>,
+    pub default_org: Option<String>,
     pub projects: HashMap<String, LinkedProject>,
 }
 
@@ -45,18 +49,27 @@ impl Config {
         Ok(Self {
             root_config_path,
             config: PlotonConfig {
-                org_id: None,
+                default_org: None,
                 projects: HashMap::new(),
+                user: HashMap::new(),
             },
         })
     }
 
-    pub fn get_org_id(&self) -> Option<String> {
-        self.config.org_id.clone()
+    pub fn set_user(&mut self, token: String, org_id: String) {
+        self.config
+            .user
+            .insert(org_id.clone(), PlotonUser { token });
+    }
+    pub fn get_user(&self) -> Option<PlotonUser> {
+        self.config.user.values().next().cloned()
     }
 
-    pub fn set_org_id(&mut self, org_id: String) {
-        self.config.org_id = Some(org_id);
+    pub fn set_default_org(&mut self, org_id: String) {
+        self.config.default_org = Some(org_id);
+    }
+    pub fn get_default_org(&self) -> Option<String> {
+        self.config.default_org.clone()
     }
 
     pub fn write(&self) -> Result<()> {
