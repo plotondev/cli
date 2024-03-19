@@ -15,7 +15,7 @@ pub struct LinkedProject {
     pub name: Option<String>,
     pub project: String,
 }
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PlotonUser {
     pub token: String,
     pub email: Option<String>,
@@ -75,15 +75,22 @@ impl Config {
         );
     }
 
-    fn get_org_id_by_name(&self, org_name: &str) -> Option<String> {
+    fn get_org_id_by_org_name(&self, org_name: &str) -> Option<String> {
         self.config
             .user
             .iter()
             .find(|(_, u)| u.org_name.as_deref() == Some(org_name))
             .map(|(id, _)| id.clone())
     }
-    pub fn set_default_org(&mut self, org_name: String) {
-        self.config.default_org = self.get_org_id_by_name(&org_name)
+    pub fn get_user_id_by_org_name(&self, org_name: &str) -> Option<String> {
+        self.config
+            .user
+            .get(&self.get_org_id_by_org_name(org_name).unwrap())
+            .map(|u| u.email.clone())
+            .flatten()
+    }
+    pub fn set_default_org(&mut self, org_name: &str) {
+        self.config.default_org = self.get_org_id_by_org_name(&org_name);
     }
 
     pub fn get_user_token_by_org(&self, org_id: &str) -> Option<String> {

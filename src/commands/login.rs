@@ -62,12 +62,12 @@ pub async fn command(_args: Args, _: bool) -> Result<()> {
             Some(resp.user_email.clone()),
             Some(resp.org_name.clone()),
         );
-        config.set_default_org(resp.org_id.clone());
+        config.set_default_org(&resp.org_id);
         config.write()?;
 
         if let Some(spinner) = spinner {
             spinner.finish_with_message(format!(
-                "\nAuthenticated as {} for organization: {}.\nOrganization {} is set to default.",
+                "\nAuthenticated as {} for organization: {}.\nDefault organization set to {}.",
                 resp.user_email, resp.org_name, resp.org_name
             ));
         }
