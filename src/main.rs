@@ -9,7 +9,7 @@ mod util;
 
 static LOGIN_URL: &str = env!("LOGIN_URL");
 static SERVER_URL: &str = env!("SERVER_URL");
-
+static TICK_STRING: &str = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ";
 /// Interact with Ploton via CLI
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -23,7 +23,7 @@ pub struct Args {
     json: bool,
 }
 
-commands_enum!(link, login, push);
+commands_enum!(link, login, push, switch);
 
 #[tokio::main]
 async fn main() -> Result<()> {

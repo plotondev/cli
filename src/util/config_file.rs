@@ -18,6 +18,8 @@ pub struct LinkedProject {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct PlotonUser {
     pub token: String,
+    pub email: Option<String>,
+    pub org_name: Option<String>,
 }
 #[derive(Serialize, Deserialize)]
 pub struct PlotonConfig {
@@ -56,14 +58,32 @@ impl Config {
         })
     }
 
-    pub fn set_user(&mut self, token: String, org_id: String) {
-        self.config
-            .user
-            .insert(org_id.clone(), PlotonUser { token });
+    pub fn set_user(
+        &mut self,
+        token: String,
+        org_id: String,
+        email: Option<String>,
+        org_name: Option<String>,
+    ) {
+        self.config.user.insert(
+            org_id.clone(),
+            PlotonUser {
+                token,
+                email,
+                org_name,
+            },
+        );
     }
 
-    pub fn set_default_org(&mut self, org_id: String) {
-        self.config.default_org = Some(org_id);
+    fn get_org_id_by_name(&self, org_name: &str) -> Option<String> {
+        self.config
+            .user
+            .iter()
+            .find(|(_, u)| u.org_name.as_deref() == Some(org_name))
+            .map(|(id, _)| id.clone())
+    }
+    pub fn set_default_org(&mut self, org_name: String) {
+        self.config.default_org = self.get_org_id_by_name(&org_name)
     }
 
     pub fn get_user_token_by_org(&self, org_id: &str) -> Option<String> {
@@ -75,6 +95,9 @@ impl Config {
     }
     pub fn get_default_org(&self) -> Option<String> {
         self.config.default_org.clone()
+    }
+    pub fn get_all_users(&self) -> Vec<&PlotonUser> {
+        self.config.user.values().collect()
     }
 
     pub fn write(&self) -> Result<()> {
