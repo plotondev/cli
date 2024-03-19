@@ -29,7 +29,7 @@ pub async fn command(_args: Args, _: bool) -> Result<()> {
         .context("Failed to read line")?;
     let api_key = api_key.trim(); // Trim newline and whitespaces
 
-    let response = HttpClient::new().post("/cli", api_key).await?;
+    let response = HttpClient::new().validate("/cli", api_key).await?;
 
     if response.status().is_success() {
         let resp: LoginResp = response

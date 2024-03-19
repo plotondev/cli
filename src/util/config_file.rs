@@ -61,12 +61,17 @@ impl Config {
             .user
             .insert(org_id.clone(), PlotonUser { token });
     }
-    pub fn get_user(&self) -> Option<PlotonUser> {
-        self.config.user.values().next().cloned()
-    }
 
     pub fn set_default_org(&mut self, org_id: String) {
         self.config.default_org = Some(org_id);
+    }
+
+    pub fn get_user_token_by_org(&self, org_id: &str) -> Option<String> {
+        self.config.user.get(org_id).map(|u| u.token.clone())
+    }
+    pub fn get_default_user_token(&self) -> Option<String> {
+        self.get_default_org()
+            .and_then(|org_id| self.get_user_token_by_org(&org_id))
     }
     pub fn get_default_org(&self) -> Option<String> {
         self.config.default_org.clone()
