@@ -23,9 +23,9 @@ pub struct PlotonUser {
 }
 #[derive(Serialize, Deserialize)]
 pub struct PlotonConfig {
-    pub user: HashMap<String, PlotonUser>,
+    pub user: HashMap<String, PlotonUser>, //org_id -> user
     pub default_org: Option<String>,
-    pub projects: HashMap<String, LinkedProject>,
+    pub projects: HashMap<String, LinkedProject>, //project_id -> project
 }
 
 pub struct Config {
