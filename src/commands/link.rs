@@ -6,16 +6,19 @@ use crate::util::config_file::Config;
 /// Show information about the current project
 #[derive(Parser)]
 pub struct Args {
-    app_id: String,
+    app_id: Option<String>,
 }
 
 pub async fn command(_args: Args, json: bool) -> Result<()> {
     let mut config = Config::new()?;
-
-    println!("Linking app ID: {} {}", _args.app_id, json);
-
-    config.link_project(_args.app_id, None)?;
-    config.write()?;
+    if let Some(app_id) = _args.app_id {
+        println!("Linking app ID: {}", app_id);
+        config.link_project(app_id, None)?;
+        config.write()?;
+        return Ok(());
+    } else {
+        println!("No app ID provided. Read config file to find app ID.");
+    }
     // Implement the linking logic here
     Ok(())
 }

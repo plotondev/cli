@@ -64,6 +64,7 @@ impl Config {
             .context("Unable to get current working directory")?;
         Ok(path.to_owned())
     }
+
     pub fn link_project(&mut self, project_id: String, name: Option<String>) -> Result<()> {
         let project_path = self.get_current_directory()?;
         self.config
