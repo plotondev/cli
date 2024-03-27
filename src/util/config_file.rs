@@ -13,7 +13,6 @@ use std::{
 pub struct LinkedProject {
     pub project_path: String,
     pub name: Option<String>,
-    pub project: String,
 }
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PlotonUser {
@@ -56,6 +55,21 @@ impl Config {
                 user: HashMap::new(),
             },
         })
+    }
+
+    pub fn get_current_directory(&self) -> Result<String> {
+        let current_dir = std::env::current_dir()?;
+        let path = current_dir
+            .to_str()
+            .context("Unable to get current working directory")?;
+        Ok(path.to_owned())
+    }
+    pub fn link_project(&mut self, project_id: String, name: Option<String>) -> Result<()> {
+        let project_path = self.get_current_directory()?;
+        self.config
+            .projects
+            .insert(project_id.clone(), LinkedProject { project_path, name });
+        Ok(())
     }
 
     pub fn set_user(
