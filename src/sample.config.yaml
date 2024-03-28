@@ -1,0 +1,24 @@
+name: Application name
+version: 1.0.0
+logo: https://example.com/logo.png
+description: Application description
+platform: Typescript
+main: src/index.ts
+readme: >
+  # Application description
+
+  This is some _Markdown_ content that includes:
+
+  - A list
+  - With items
+
+  **Bold** and *italic* text can also be included.
+user_inputs:
+  - name: slack_webhook
+    description: The slack webhook you want to use
+    type: url
+    default:
+  - name: slack_channel
+    description: The slack channel you want to use
+    type: string
+    default: general

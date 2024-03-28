@@ -23,7 +23,7 @@ pub struct Args {
     json: bool,
 }
 
-commands_enum!(link, login, push, switch);
+commands_enum!(link, login, push, switch, new);
 
 #[tokio::main]
 async fn main() -> Result<()> {

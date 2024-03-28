@@ -47,8 +47,8 @@ pub async fn command(_args: Args, _: bool) -> Result<()> {
         println!("Authenticating...");
         None
     };
-
-    let response = HttpClient::new().validate("/cli", api_key).await?;
+    let config = Config::new()?;
+    let response = HttpClient::new(&config).validate("/cli", api_key).await?;
     if response.status().is_success() {
         let resp: LoginResp = response
             .json()
