@@ -19,12 +19,8 @@ struct ConfigResponse {
     id: String,
     name: String,
 }
-pub async fn command(_args: Args, json: bool) -> Result<()> {
+pub async fn command(_args: Args, _: bool) -> Result<()> {
     let mut config = Config::new()?;
-    // Implement the new app creation logic here
-    // 1) Create a new app
-    // 2) Link the app to the current directory
-    // 3) Write the config file
     println!("Please enter a small description for the app :");
     let mut app_desc = String::new();
     io::stdin()
@@ -43,13 +39,13 @@ pub async fn command(_args: Args, json: bool) -> Result<()> {
         .await?;
     let ploton_config = response.text().await?;
     let ploton_config_yaml: ConfigResponse = serde_yaml::from_str(&ploton_config)?;
-    //write this to a local file called ploton.config
-    let current_dir = std::env::current_dir()?;
+
+    //write this to ploton.yaml file
+    let current_dir = std::env::current_dir().context("Failed to get current directory")?;
     let config_path = current_dir.join("ploton.yaml");
-    std::fs::write(config_path, ploton_config)?;
+    std::fs::write(config_path, ploton_config).context("Failed to write to ploton.yaml")?;
     config.link_project(ploton_config_yaml.id, Some(ploton_config_yaml.name))?;
     config.write()?;
-    //config.write()?;
 
     Ok(())
 }
