@@ -25,21 +25,22 @@ impl<'a> HttpClient<'a> {
             .header("PLOTON_API_KEY", api_key)
             .send()
             .await
-            .context("HTTP POST request failed")
+            .context("HTTP request failed. Kindly try again.")
     }
 
     pub async fn post<T: Serialize>(&self, endpoint: &str, body: &T) -> Result<Response> {
         let full_url = format!("{}{}", self.base_url, endpoint);
-        print!("{}", full_url);
+        println!("POST request to {}", full_url);
+        let default_org = self.config.get_default_org().context(
+            "No default organization selected. Please run ploton switch to select an organization.",
+        )?;
+        let token = self.config.get_user_token_by_org(default_org.as_str()).context("No user found for the default organization. Please run ploton login to re-authenticate.")?;
         self.client
             .post(&full_url)
-            .header(
-                "PLOTON_API_KEY",
-                self.config.get_default_org().context("No default organization selected. Please run ploton switch to select an organization.")?,
-            )
+            .header("PLOTON_API_KEY", token)
             .json(body)
             .send()
             .await
-            .context("HTTP POST request failed")
+            .context("HTTP request failed. Please try again.")
     }
 }
