@@ -30,7 +30,7 @@ impl<'a> HttpClient<'a> {
 
     pub async fn post<T: Serialize>(&self, endpoint: &str, body: &T) -> Result<Response> {
         let full_url = format!("{}{}", self.base_url, endpoint);
-        println!("POST request to {}", full_url);
+
         let default_org = self.config.get_default_org().context(
             "No default organization selected. Please run ploton switch to select an organization.",
         )?;
