@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 
-use crate::util::{config_file::Config, http::HttpClient};
+use crate::util::{config_file::Config, http::HttpClient, local_file::LocalFile};
 
 /// Create new integration app
 #[derive(Parser)]
@@ -20,6 +20,8 @@ struct ConfigResponse {
     name: String,
 }
 pub async fn command(_args: Args, _: bool) -> Result<()> {
+    let mut local_file = LocalFile::new()?;
+
     let mut config = Config::new()?;
     println!("Please enter a small description for the app :");
     let mut app_desc = String::new();
@@ -39,12 +41,11 @@ pub async fn command(_args: Args, _: bool) -> Result<()> {
         .await?;
     if response.status().is_success() {
         let ploton_config = response.text().await?;
-        let ploton_config_yaml: ConfigResponse = serde_yaml::from_str(&ploton_config)?;
+        let ploton_config_yaml: LocalFile = serde_yaml::from_str(&ploton_config)?;
 
-        //write this to ploton.yaml file
-        let current_dir = std::env::current_dir().context("Failed to get current directory")?;
-        let config_path = current_dir.join("ploton.yaml");
-        std::fs::write(config_path, ploton_config).context("Failed to write to ploton.yaml")?;
+        local_file.load(ploton_config_yaml.clone());
+        local_file.write()?;
+
         config.link_project(ploton_config_yaml.id, Some(ploton_config_yaml.name))?;
         config.write()?;
 
