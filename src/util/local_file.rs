@@ -62,8 +62,8 @@ impl LocalFile {
     }
 
     //when creating a new local ploton yaml file
-    pub fn new() -> Result<Self> {
-        if Self::file_exists() {
+    pub fn new(override_: bool) -> Result<Self> {
+        if !override_ && Self::file_exists() {
             Err(LocalFileError::AlreadyExists)?
         }
         Ok(Self {

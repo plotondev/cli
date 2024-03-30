@@ -8,7 +8,11 @@ use crate::util::{config_file::Config, http::HttpClient, local_file::LocalFile};
 
 /// Create new integration app
 #[derive(Parser)]
-pub struct Args {}
+pub struct Args {
+    /// Override the current configuration file in the current directory
+    #[clap(short, long, name = "override")]
+    override_: bool,
+}
 
 #[derive(Serialize)]
 struct NewIntegrationPayLoad {
@@ -20,7 +24,7 @@ struct ConfigResponse {
     name: String,
 }
 pub async fn command(_args: Args, _: bool) -> Result<()> {
-    let mut local_file = LocalFile::new()?;
+    let mut local_file = LocalFile::new(_args.override_)?;
 
     let mut config = Config::new()?;
     println!("Please enter a small description for the app :");
