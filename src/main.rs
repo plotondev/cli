@@ -17,10 +17,6 @@ static TICK_STRING: &str = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ";
 pub struct Args {
     #[clap(subcommand)]
     command: Commands,
-
-    /// Output in JSON format
-    #[clap(global = true, long)]
-    json: bool,
 }
 
 commands_enum!(link, login, push, switch, new);

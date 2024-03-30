@@ -22,7 +22,7 @@ struct LoginResp {
     user_email: String,
 }
 
-pub async fn command(_args: Args, _: bool) -> Result<()> {
+pub async fn command(_args: Args) -> Result<()> {
     println!("Please visit the following URL to obtain your API key:");
     println!("{}/org/api_keys/", LOGIN_URL);
     println!("Paste your API key below:");

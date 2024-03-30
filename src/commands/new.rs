@@ -23,11 +23,11 @@ struct ConfigResponse {
     id: String,
     name: String,
 }
-pub async fn command(_args: Args, _: bool) -> Result<()> {
+pub async fn command(_args: Args) -> Result<()> {
     let mut local_file = LocalFile::new(_args.override_)?;
 
     let mut config = Config::new()?;
-    println!("Please enter a small description for the app :");
+    println!("Please give a short desciption of the app:");
     let mut app_desc = String::new();
     io::stdin()
         .read_line(&mut app_desc)

@@ -9,7 +9,7 @@ pub struct Args {
     app_id: Option<String>,
 }
 
-pub async fn command(_args: Args, json: bool) -> Result<()> {
+pub async fn command(_args: Args) -> Result<()> {
     let mut config = Config::new()?;
     if let Some(app_id) = _args.app_id {
         //check if project exists

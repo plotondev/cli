@@ -8,7 +8,7 @@ use crate::util::config_file::Config;
 #[derive(Parser)]
 pub struct Args {}
 
-pub async fn command(_args: Args, json: bool) -> Result<()> {
+pub async fn command(_args: Args) -> Result<()> {
     let config = Config::new()?;
     let users = config.get_all_users();
 

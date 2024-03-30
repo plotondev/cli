@@ -8,7 +8,7 @@ use crate::util::local_file::LocalFile;
 pub struct Args {}
 //1) bundle the code
 //2) send the code to the server
-pub async fn command(_args: Args, json: bool) -> Result<()> {
+pub async fn command(_args: Args) -> Result<()> {
     let mut local_file = LocalFile::read()?;
     println!("Pushing code...");
     print!("local file {:?}", local_file);
