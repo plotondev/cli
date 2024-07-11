@@ -1,30 +1,38 @@
-use crate::{
-    util::{config_file::Config, http::HttpClient},
-    LOGIN_URL, TICK_STRING,
-};
-use indicatif::{ProgressBar, ProgressStyle};
-use is_terminal::IsTerminal;
-
-use anyhow::{Context, Result};
-use serde::Deserialize;
 use std::{io, time::Duration};
 
+use anyhow::{Context, Result};
 use clap::Parser;
+use indicatif::{ProgressBar, ProgressStyle};
+use is_terminal::IsTerminal;
+use serde::Deserialize;
+
+use crate::{
+    TICK_STRING,
+    util::{config_file::Config, http::HttpClient},
+};
 
 /// Ploton authentication command
 #[derive(Parser)]
 pub struct Args {}
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct LoginResp {
-    org_id: String,
-    org_name: String,
-    user_email: String,
+    role: String,
+    t_id: String,    //tenant id
+    r_id: String,    //resource id
+    user_id: String, //userid
 }
 
 pub async fn command(_args: Args) -> Result<()> {
+    let config = Config::new()?;
+
     println!("Please visit the following URL to obtain your API key:");
-    println!("{}/org/api_keys/", LOGIN_URL);
+    println!(
+        "{}/cli/keys",
+        config
+            .get_server_url()
+            .context("No server URL found. Please run ploton init to set a server URL.")?
+    );
     println!("Paste your API key below:");
 
     let mut api_key = String::new();
@@ -47,28 +55,33 @@ pub async fn command(_args: Args) -> Result<()> {
         println!("Authenticating...");
         None
     };
-    let config = Config::new()?;
-    let response = HttpClient::new(&config).validate("/cli", api_key).await?;
+
+    let response = HttpClient::new(&config)?.validate(api_key).await?;
+
     if response.status().is_success() {
         let resp: LoginResp = response
             .json()
             .await
             .context("Failed to send validation request")?;
 
+        println!("{:?}", resp);
+
         let mut config = Config::new()?;
+
+        println!("{:?}", config);
         config.set_user(
             api_key.to_string(),
-            resp.org_id.clone(),
-            Some(resp.user_email.clone()),
-            Some(resp.org_name.clone()),
+            resp.t_id.clone(),
+            resp.user_id.clone(),
+            resp.t_id.clone(),
         );
-        config.set_default_org(&resp.org_id);
+        config.set_default_org(&resp.t_id);
         config.write()?;
 
         if let Some(spinner) = spinner {
             spinner.finish_with_message(format!(
-                "\nAuthenticated as {} for organization: {}.\nDefault organization set to {}.",
-                resp.user_email, resp.org_name, resp.org_name
+                "\nAuthenticated for organization: {}.\nDefault organization set to {}.",
+                resp.t_id, resp.t_id
             ));
         }
 

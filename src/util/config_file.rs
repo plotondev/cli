@@ -1,13 +1,15 @@
-use anyhow::{Context, Result};
-use dirs;
-use serde::{Deserialize, Serialize};
-use serde_json;
 use std::{
     collections::HashMap,
     fs::{self, create_dir_all, File},
     io::Read,
     path::PathBuf,
 };
+
+use anyhow::{Context, Result};
+use dirs;
+use serde::{Deserialize, Serialize};
+use serde_json;
+use url::Url;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct LinkedProject {
@@ -17,16 +19,18 @@ pub struct LinkedProject {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PlotonUser {
     pub token: String,
-    pub email: Option<String>,
-    pub org_name: Option<String>,
+    pub user_id: String,
+    pub tenant_id: String,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PlotonConfig {
+    pub endpoint: Option<String>,
     pub user: HashMap<String, PlotonUser>, //org_id -> user
     pub default_org: Option<String>,
     pub projects: HashMap<String, LinkedProject>, //project_id -> project
 }
 
+#[derive(Debug)]
 pub struct Config {
     root_config_path: PathBuf,
     config: PlotonConfig,
@@ -50,6 +54,7 @@ impl Config {
         Ok(Self {
             root_config_path,
             config: PlotonConfig {
+                endpoint: None,
                 default_org: None,
                 projects: HashMap::new(),
                 user: HashMap::new(),
@@ -73,19 +78,20 @@ impl Config {
         Ok(())
     }
 
-    pub fn set_user(
-        &mut self,
-        token: String,
-        org_id: String,
-        email: Option<String>,
-        org_name: Option<String>,
-    ) {
+    pub fn set_server(&mut self, url: String) -> Result<()> {
+        //validate url
+        Url::parse(&url).context("Invalid server URL")?;
+        self.config.endpoint = Some(url);
+        Ok(())
+    }
+
+    pub fn set_user(&mut self, token: String, org_id: String, user_id: String, tenant_id: String) {
         self.config.user.insert(
             org_id.clone(),
             PlotonUser {
                 token,
-                email,
-                org_name,
+                user_id,
+                tenant_id,
             },
         );
     }
@@ -94,15 +100,14 @@ impl Config {
         self.config
             .user
             .iter()
-            .find(|(_, u)| u.org_name.as_deref() == Some(org_name))
+            .find(|(_, u)| u.tenant_id == org_name)
             .map(|(id, _)| id.clone())
     }
     pub fn get_user_id_by_org_name(&self, org_name: &str) -> Option<String> {
         self.config
             .user
             .get(&self.get_org_id_by_org_name(org_name).unwrap())
-            .map(|u| u.email.clone())
-            .flatten()
+            .map(|u| u.user_id.clone())
     }
     pub fn set_default_org(&mut self, org_name: &str) {
         self.config.default_org = self.get_org_id_by_org_name(&org_name);
@@ -122,6 +127,9 @@ impl Config {
         self.config.user.values().collect()
     }
 
+    pub fn get_server_url(&self) -> Option<String> {
+        self.config.endpoint.clone()
+    }
     pub fn write(&self) -> Result<()> {
         let config_dir = self
             .root_config_path

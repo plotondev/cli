@@ -14,7 +14,7 @@ pub async fn command(_args: Args) -> Result<()> {
 
     let options: Vec<&str> = users
         .iter()
-        .map(|u| u.org_name.as_ref().unwrap().as_str())
+        .map(|u| u.tenant_id.as_str())
         .collect::<Vec<&str>>();
 
     let ans: Result<&str, InquireError> =

@@ -1,8 +1,9 @@
-use crate::util::config_file::Config;
-use crate::SERVER_URL;
 use anyhow::{Context, Result};
 use reqwest::{Client, Response};
 use serde::Serialize;
+
+use crate::util::config_file::Config;
+
 pub struct HttpClient<'a> {
     client: Client,
     config: &'a Config,
@@ -10,19 +11,22 @@ pub struct HttpClient<'a> {
 }
 
 impl<'a> HttpClient<'a> {
-    pub fn new(config: &'a Config) -> Self {
-        HttpClient {
+    pub fn new(config: &'a Config) -> Result<Self> {
+        let base_url: String = config
+            .get_server_url()
+            .context("No server URL found. Please run ploton init to set a server URL.")?;
+        Ok(HttpClient {
             client: Client::new(),
             config,
-            base_url: SERVER_URL.to_string(),
-        }
+            base_url,
+        })
     }
 
-    pub async fn validate(&self, endpoint: &str, api_key: &str) -> Result<Response> {
-        let full_url = format!("{}{}", self.base_url, endpoint);
+    pub async fn validate(&self, api_key: &str) -> Result<Response> {
+        let full_url = format!("{}{}", self.base_url, "/auth/verify_auth");
         self.client
             .post(&full_url)
-            .header("PLOTON_API_KEY", api_key)
+            .header("Authorization", format!("Bearer {}", api_key))
             .send()
             .await
             .context("HTTP request failed. Kindly try again.")

@@ -34,7 +34,7 @@ pub async fn command(_args: Args) -> Result<()> {
         .context("Failed to read line")?;
     let app_desc = app_desc.trim(); // Trim newline and whitespaces
     println!("App description: {}", app_desc);
-    let http_client = HttpClient::new(&config);
+    let http_client = HttpClient::new(&config)?;
 
     let payload = NewIntegrationPayLoad {
         description: app_desc.to_string(),

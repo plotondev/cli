@@ -7,19 +7,17 @@ mod commands;
 mod macros;
 mod util;
 
-static LOGIN_URL: &str = env!("LOGIN_URL");
-static SERVER_URL: &str = env!("SERVER_URL");
 static TICK_STRING: &str = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ";
 /// Interact with Ploton via CLI
 #[derive(Parser)]
-#[clap(author, version, about, long_about = None)]
+#[clap(author, version, about)]
 #[clap(propagate_version = true)]
 pub struct Args {
     #[clap(subcommand)]
     command: Commands,
 }
 
-commands_enum!(link, login, push, switch, new);
+commands_enum!(link, login, push, switch, new, init);
 
 #[tokio::main]
 async fn main() -> Result<()> {
